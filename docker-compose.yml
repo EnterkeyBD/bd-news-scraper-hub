@@ -16,11 +16,4 @@ services:
       # Persist user-uploaded images
       - ./uploaded_news_images:/app/uploaded_news_images
       - ./uploads_temp:/app/uploads_temp
-      # Persist the scraper cycle config edited via the UI
-      - ./scraper_cycle_config.json:/app/scraper_cycle_config.json
-      # Cache InsightFace model weights so they aren't re-downloaded on restart
-      - insightface_models:/root/.insightface
     restart: unless-stopped
-
-volumes:
-  insightface_models:

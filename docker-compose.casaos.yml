@@ -1,0 +1,44 @@
+name: bd-news-scraper-hub
+services:
+  app:
+    image: mirzasaikatahmmed/bd-news-scraper-hub:latest
+    container_name: bd-news-scraper-hub
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=103.213.38.238
+      - DB_PORT=3306
+      - DB_NAME=siamvidb_scraptestg
+      - DB_USER=siamvidb_scraptestg
+      - DB_PASSWORD=HuHmf!w=E]=%%I=3L&
+      - OPENAI_API_KEY=sk-...
+    volumes:
+      - /DATA/AppData/bd-news-scraper-hub/news_images:/app/news_images
+      - /DATA/AppData/bd-news-scraper-hub/last_run:/app/last_run
+      - /DATA/AppData/bd-news-scraper-hub/logs:/app/logs
+      - /DATA/AppData/bd-news-scraper-hub/uploaded_news_images:/app/uploaded_news_images
+      - /DATA/AppData/bd-news-scraper-hub/uploads_temp:/app/uploads_temp
+    restart: unless-stopped
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: app
+  store_app_id: bd-news-scraper-hub
+  category: utilities
+  author: mirzasaikatahmmed
+  developer: mirzasaikatahmmed
+  icon: https://raw.githubusercontent.com/mirzasaikatahmmed/bd-news-scraper-hub/main/public/logo.svg
+  thumbnail: ""
+  title:
+    en_us: BD News Scraper Hub
+  tagline:
+    en_us: Bangladeshi news scraper dashboard with face search & event clustering
+  description:
+    en_us: |
+      A centralized dashboard to manage scrapers for 15+ Bangladeshi news sources.
+      Features include real-time scraper monitoring, article management, face search,
+      event clustering, and AI-powered article validation.
+  port_map: "3000"
