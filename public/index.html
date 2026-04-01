@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraper Management Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
+    <link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+    <!-- Running Scrapers Sidebar -->
+    <div id="running-sidebar" class="running-sidebar collapsed">
+        <button id="sidebar-toggle" class="sidebar-toggle" title="Toggle Running Scrapers">
+            <span class="arrow">►</span>
+        </button>
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3>Running Scrapers</h3>
+                <span class="running-count" id="sidebar-running-count">0</span>
+            </div>
+            <div class="sidebar-list" id="sidebar-list">
+                <div class="sidebar-empty">No running scrapers</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>📰 News Scraper Management Dashboard</h1>
+            <div class="header-actions">
+                <a href="articles.html" class="btn btn-primary btn-sm">📄 Articles</a>
+                <a href="report.html" class="btn btn-warning btn-sm">📊 Report</a>
+                <a href="clusters.html" class="btn btn-purple btn-sm">🔗 Event Clusters</a>
+                <a href="keywords.html" class="btn btn-warning btn-sm">🔔 Keywords</a>
+                <a href="categories.html" class="btn btn-info btn-sm">📂 Categories</a>
+                <a href="find-people.html" class="btn btn-success btn-sm">🔍 Find People</a>
+                <a href="cycle-times.html" class="btn btn-info btn-sm">⏱️ Cycle Times</a>
+                <a href="scheduler.html" class="btn btn-purple btn-sm">🕐 Scheduler</a>
+                <div class="dropdown">
+                    <button id="settings-btn" class="btn btn-secondary btn-sm dropdown-toggle">⚙️ More</button>
+                    <div class="dropdown-menu" id="settings-menu">
+                        <a href="last-run.html" class="dropdown-item">🕐 Last Run</a>
+                    </div>
+                </div>
+                <button id="start-all-btn" class="btn btn-success btn-sm">▶ Start All</button>
+                <button id="stop-all-btn" class="btn btn-danger btn-sm">⏸ Stop All</button>
+                <button id="logout-btn" class="btn btn-danger btn-sm" title="Logout" onclick="logoutUser()" style="margin-left:8px;">🔒 Logout</button>
+            </div>
+        </header>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-label">Total Scrapers</div>
+                <div class="stat-value" id="total-scrapers">0</div>
+            </div>
+            <div class="stat-card running">
+                <div class="stat-label">Running</div>
+                <div class="stat-value" id="running-scrapers">0</div>
+            </div>
+            <div class="stat-card stopped">
+                <div class="stat-label">Stopped</div>
+                <div class="stat-value" id="stopped-scrapers">0</div>
+            </div>
+            <div class="stat-card error">
+                <div class="stat-label">Errors</div>
+                <div class="stat-value" id="total-errors">0</div>
+            </div>
+        </div>
+
+        <div id="scrapers-container"></div>
+    </div>
+
+    <!-- Modal for output logs -->
+    <div id="output-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Scraper Output</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="output-logs"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for categories -->
+    <div id="categories-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="categories-modal-title">Categories</h2>
+                <span class="close-categories">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table id="categories-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Last Processed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="categories-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js?v=6"></script>
+    <script>
+        function logoutUser() {
+            fetch('/api/logout', { method: 'POST' })
+                .then(() => { window.location.href = '/login.html'; })
+                .catch(() => { window.location.href = '/login.html'; });
+        }
+    </script>
+</body>
+</html>

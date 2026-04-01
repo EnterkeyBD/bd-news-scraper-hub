@@ -1,0 +1,77 @@
+/* Scheduler Modal Styles */
+#scheduler-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: rgba(0,0,0,0.4);
+}
+#scheduler-modal .modal-content {
+  background: #fff;
+  margin: 5% auto;
+  padding: 30px 40px 25px 40px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  position: relative;
+  animation: fadeIn 0.3s;
+}
+#scheduler-modal h2 {
+  margin-top: 0;
+  font-size: 1.5em;
+  color: #2c3e50;
+  text-align: center;
+}
+#scheduler-modal label {
+  display: block;
+  margin: 18px 0 6px 0;
+  font-weight: 500;
+  color: #34495e;
+}
+#scheduler-modal select,
+#scheduler-modal input[type="time"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  margin-bottom: 10px;
+  background: #f9f9f9;
+}
+#scheduler-modal button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  background: #2980d9;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+#scheduler-modal button[type="submit"]:hover {
+  background: #1a5fa2;
+}
+#close-scheduler-modal {
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  font-size: 1.5em;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+#close-scheduler-modal:hover {
+  color: #e74c3c;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

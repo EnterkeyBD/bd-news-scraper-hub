@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Monitor - Scraper Manager</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔔</text></svg>">
+    <link rel="stylesheet" href="styles.css?v=6">
+    <style>
+        .keyword-page {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .keyword-page {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .keyword-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .keyword-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .keyword-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .keyword-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .keyword-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .keyword-item.inactive {
+            opacity: 0.5;
+            border-left-color: #9ca3af;
+        }
+
+        .keyword-text {
+            font-weight: 500;
+            color: #333;
+            flex: 1;
+        }
+
+        .keyword-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .keyword-actions button {
+            padding: 4px 8px;
+            font-size: 11px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-toggle {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .status-indicator {
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active { background: #d1fae5; color: #059669; }
+        .status-inactive { background: #fee2e2; color: #dc2626; }
+
+        /* Matches Panel */
+        .matches-panel {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 200px);
+        }
+
+        .matches-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .matches-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .matches-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .match-count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .matches-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 400px;
+        }
+
+        .match-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #10b981;
+        }
+
+        .match-item.new {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .match-checkbox {
+            margin-top: 3px;
+        }
+
+        .match-content {
+            flex: 1;
+        }
+
+        .match-headline {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .match-headline a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .match-headline a:hover {
+            color: #667eea;
+        }
+
+        .match-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .match-keyword {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .match-source {
+            background: #e5e7eb;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .debug-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: #f9fafb;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background: #f3f4f6;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔔 Keyword Monitor</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">← Dashboard</a>
+                <a href="articles.html" class="btn btn-primary">📄 Articles</a>
+            </div>
+        </header>
+
+        <div class="keyword-page">
+            <!-- Left Panel: Keywords Management -->
+            <div class="panel">
+                <h3>
+                    Keywords
+                    <span class="status-indicator" id="status-indicator">Inactive</span>
+                </h3>
+
+                <button class="btn btn-info btn-sm" id="recheck-articles-btn" style="width:100%;margin-bottom:10px;">🔄 Recheck All Articles</button>
+
+                <div class="toggle-container">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="monitoring-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span>Enable Monitoring</span>
+                </div>
+
+                <div class="keyword-input-group">
+                    <input type="text" id="keyword-input" class="keyword-input"
+                           placeholder="Enter keyword (English/বাংলা)"
+                           onkeypress="if(event.key==='Enter') addKeyword()">
+                    <button class="btn btn-success btn-sm" onclick="addKeyword()">Add</button>
+                </div>
+
+                <div class="keyword-list" id="keyword-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>No keywords added</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-info btn-sm" onclick="searchExisting()" style="width: 100%;">
+                        Search Existing Articles
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="resetScan()" style="width: 100%; margin-top: 8px;">
+                        Re-scan Last 100 Articles
+                    </button>
+                </div>
+
+                <div class="debug-info" id="debug-info">Loading...</div>
+            </div>
+
+            <!-- Right Panel: Matches -->
+            <div class="panel matches-panel">
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="value" id="stat-total">0</div>
+                        <div class="label">Total Matches</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="stat-unread">0</div>
+                        <div class="label">Unread</div>
+                    </div>
+                </div>
+
+                <div class="matches-header">
+                    <h3 style="margin: 0;">Matched Articles</h3>
+                    <div class="matches-filters">
+                        <select class="filter-select" id="filter-keyword" onchange="loadMatches()">
+                            <option value="">All Keywords</option>
+                        </select>
+                        <select class="filter-select" id="filter-source" onchange="loadMatches()">
+                            <option value="">All Sources</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="select-all-container">
+                    <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                    <label for="select-all">Select All</label>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSelected()" style="margin-left: auto;">
+                        Delete Selected
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="deleteAll()">
+                        Delete All
+                    </button>
+                </div>
+
+                <div class="matches-list" id="matches-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No matches yet</p>
+                    </div>
+                </div>
+
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="notification-sound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2telegs8teleqs8sBzVltNLXomwbEFeg0d2pcxoRVJDT3KtzGhFUj9Pcq3MaEVSQ09yrdBoRVJDT3Kt0GhFUkNPcq3QaEVSQ09yrdBkRVI/T3Kt0GRFUj9Pcq3QZEVSPz9yrdBkQVI7P3Kt0GA9UjsijZhoFD0p2ha1sIQoPR2Nnh6dmKwkQSFlHcJKrdzUMGFJoaYynf0YUJVxxepGtkVchMWN9h5eyj2YsP3WNn6mckHhQWYGhspiVgFZVeou5qaOcXUVihqXJrqh/PkRjjbXNrqSARkNlk7zJq5uARUVukMPFpI14Q0pzmdDCnYhxQE14odfAloFrPVF+p9u+kXtoPFeDrOC7i3VkO1qIsPDBhXBdOV6MtPbDf2tYN2CSuPrBfGZSOWKVu/+/eWJOOGeYvv+9dl9LN2ubv/+7dF1JNm6dwP+6c1tHNnGfwP+5clpGNnOhwv+4cVlFNnWixP+3cFhENnekxf+2b1dDN3mlxv+1bldCN3unx/+0bVZBN32oy/+zbFVAN36pzP+ya1RAN4Cqzv+xalM/OIGr0P+waVM+OIOt0f+vZ1I+OYSv1P+uZlE9OYaw1f+tZVA8Ooey1/+sZE87Ooit2P+rY048O4mv2f+qYk07PIux3P+pYUw6PI2z3f+oYEs5PY+03/+nX0o4PpG24P+mXkk4P5K44f+lXUg3QJS64v+kXEc2QJa74/+jW0Y1QZi94/+iWkU0Qpm/5f+hWUM0Q5vA5v+gWEIzRJ3B6P+fV0EyRZ/D6f+eVkAxRqHE6v+dVT8xR6PG6/+cVD4wSKTH7P+bUz0vSabJ7f+aUjwuSqjL7v+ZUTstS6rM8P+YUDosTagOIACwAAAALgAAAD4AAAAMIAAAAP/+/fz8+/r5+Pf29fTz8vHw7+7t7Ovq6ejn5uXk4+Lh4N/e3dzb2tnY19bV1NPS0dDPzs3My8rJyMfGxcTDwsHAv769vLu6ubi3trW0s7KxsK+urayrqqmop6alpKOioaCfnp2cm5qZmJeWlZSTkpGQj46NjIuKiYiHhoWEg4KBgH9+fXx7enl4d3Z1dHNycXBvbm1sa2ppaGdmZWRjYmFgX15dXFtaWVhXVlVUU1JRUE9OTUxLSklIR0ZFRENCQUA/Pj08Ozo5ODc2NTQzMjEwLy4tLCsqKSgnJiUkIyIhIB8eHRwbGhkYFxYVFBMSERAPDg0MCwoJCAcGBQQDAgEAAA==" type="audio/wav">
+    </audio>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentPage = 1;
+        let totalPages = 1;
+        let allKeywords = [];
+
+        // Manual recheck trigger
+        document.addEventListener('DOMContentLoaded', function() {
+            const recheckBtn = document.getElementById('recheck-articles-btn');
+            if (recheckBtn) {
+                recheckBtn.addEventListener('click', async function() {
+                    recheckBtn.disabled = true;
+                    recheckBtn.textContent = 'Rechecking...';
+                    try {
+                        const resp = await fetch('/api/recheck-articles', { method: 'POST' });
+                        const data = await resp.json();
+                        if (data.success) {
+                            showNotification('Recheck started', 'info');
+                        } else {
+                            showNotification('Failed to start recheck', 'error');
+                        }
+                    } catch (e) {
+                        showNotification('Error triggering recheck', 'error');
+                    }
+                    setTimeout(() => {
+                        recheckBtn.disabled = false;
+                        recheckBtn.textContent = '🔄 Recheck All Articles';
+                    }, 3000);
+                });
+            }
+        });
+
+        socket.on('recheck-finished', (data) => {
+            showNotification('Article recheck finished', data.code === 0 ? 'success' : 'error');
+        });
+
+        // DOM elements
+        const keywordInput = document.getElementById('keyword-input');
+        const keywordList = document.getElementById('keyword-list');
+        const matchesList = document.getElementById('matches-list');
+        const monitoringToggle = document.getElementById('monitoring-toggle');
+        const statusIndicator = document.getElementById('status-indicator');
+        const filterKeyword = document.getElementById('filter-keyword');
+        const filterSource = document.getElementById('filter-source');
+
+        // Load initial data
+        async function init() {
+            await loadKeywords();
+            await loadMatches();
+            await loadStats();
+        }
+
+        // Load keywords from database
+        async function loadKeywords() {
+            try {
+                const response = await fetch('/api/keywords');
+                const data = await response.json();
+                allKeywords = data.keywords;
+                renderKeywords(data.keywords);
+                monitoringToggle.checked = data.enabled;
+                updateStatusIndicator(data.enabled);
+                updateDebugInfo(data);
+                updateKeywordFilter(data.keywords);
+            } catch (error) {
+                console.error('Error loading keywords:', error);
+            }
+        }
+
+        // Render keywords list
+        function renderKeywords(keywords) {
+            if (!keywords || keywords.length === 0) {
+                keywordList.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔍</div><p>No keywords added</p></div>`;
+                return;
+            }
+
+            keywordList.innerHTML = keywords.map(kw => `
+                <div class="keyword-item ${kw.is_active ? '' : 'inactive'}">
+                    <span class="keyword-text">${escapeHtml(kw.keyword)}</span>
+                    <div class="keyword-actions">
+                        <button class="btn-toggle" onclick="toggleKeyword(${kw.id})">${kw.is_active ? 'Disable' : 'Enable'}</button>
+                        <button class="btn-remove" onclick="removeKeyword(${kw.id})">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update keyword filter dropdown
+        function updateKeywordFilter(keywords) {
+            filterKeyword.innerHTML = '<option value="">All Keywords</option>' +
+                keywords.map(kw => `<option value="${kw.id}">${escapeHtml(kw.keyword)}</option>`).join('');
+        }
+
+        // Add keyword
+        async function addKeyword() {
+            const keyword = keywordInput.value.trim();
+            if (!keyword) return;
+
+            try {
+                const response = await fetch('/api/keywords', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword })
+                });
+
+                if (response.ok) {
+                    keywordInput.value = '';
+                    showNotification('Keyword added', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification(error.error || 'Failed to add', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to add keyword', 'error');
+            }
+        }
+
+        // Remove keyword
+        async function removeKeyword(id) {
+            if (!confirm('Delete this keyword and all its matches?')) return;
+
+            try {
+                await fetch(`/api/keywords/${id}`, { method: 'DELETE' });
+                showNotification('Keyword removed', 'success');
+                loadMatches();
+            } catch (error) {
+                showNotification('Failed to remove', 'error');
+            }
+        }
+
+        // Toggle keyword active status
+        async function toggleKeyword(id) {
+            try {
+                await fetch(`/api/keywords/${id}/toggle`, { method: 'PATCH' });
+            } catch (error) {
+                showNotification('Failed to toggle', 'error');
+            }
+        }
+
+        // Toggle monitoring
+        monitoringToggle.addEventListener('change', async () => {
+            try {
+                const response = await fetch('/api/keywords/toggle', { method: 'POST' });
+                const data = await response.json();
+                updateStatusIndicator(data.enabled);
+                showNotification(`Monitoring ${data.enabled ? 'enabled' : 'disabled'}`, 'success');
+            } catch (error) {
+                showNotification('Failed to toggle', 'error');
+            }
+        });
+
+        // Update status indicator
+        function updateStatusIndicator(enabled) {
+            statusIndicator.textContent = enabled ? 'Active' : 'Inactive';
+            statusIndicator.className = `status-indicator ${enabled ? 'status-active' : 'status-inactive'}`;
+        }
+
+        // Load matches from database
+        async function loadMatches(page = 1) {
+            currentPage = page;
+            const keywordId = filterKeyword.value;
+            const source = filterSource.value;
+
+            try {
+                let url = `/api/keywords/matches?page=${page}&limit=30`;
+                if (keywordId) url += `&keyword_id=${keywordId}`;
+                if (source) url += `&source_site=${encodeURIComponent(source)}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                totalPages = data.totalPages;
+                renderMatches(data.matches);
+                renderPagination(data.page, data.totalPages);
+
+                document.getElementById('select-all').checked = false;
+            } catch (error) {
+                console.error('Error loading matches:', error);
+            }
+        }
+
+        // Render matches
+        function renderMatches(matches) {
+            if (!matches || matches.length === 0) {
+                matchesList.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>No matches found</p></div>`;
+                return;
+            }
+
+            matchesList.innerHTML = matches.map(match => `
+                <div class="match-item ${match.is_read ? '' : 'new'}" data-id="${match.match_id}">
+                    <input type="checkbox" class="match-checkbox" value="${match.match_id}">
+                    <div class="match-content">
+                        <div class="match-headline">
+                            <a href="${escapeHtml(match.source_url)}" target="_blank">
+                                ${escapeHtml(match.headline || 'No headline')}
+                            </a>
+                        </div>
+                        <div class="match-meta">
+                            <span class="match-keyword">${escapeHtml(match.keyword_text)}</span>
+                            <span class="match-source">${escapeHtml(match.source_site)}</span>
+                            <span>${formatTime(match.matched_at)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render pagination
+        function renderPagination(current, total) {
+            const pagination = document.getElementById('pagination');
+            if (total <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button onclick="loadMatches(${current - 1})" ${current === 1 ? 'disabled' : ''}>← Prev</button>`;
+
+            for (let i = 1; i <= total; i++) {
+                if (i === 1 || i === total || (i >= current - 2 && i <= current + 2)) {
+                    html += `<button onclick="loadMatches(${i})" class="${i === current ? 'active' : ''}">${i}</button>`;
+                } else if (i === current - 3 || i === current + 3) {
+                    html += `<span>...</span>`;
+                }
+            }
+
+            html += `<button onclick="loadMatches(${current + 1})" ${current === total ? 'disabled' : ''}>Next →</button>`;
+            pagination.innerHTML = html;
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/keywords/stats');
+                const data = await response.json();
+                document.getElementById('stat-total').textContent = data.totalMatches;
+                document.getElementById('stat-unread').textContent = data.unreadMatches;
+
+                // Update source filter
+                if (data.bySite && data.bySite.length > 0) {
+                    filterSource.innerHTML = '<option value="">All Sources</option>' +
+                        data.bySite.map(s => `<option value="${escapeHtml(s.source_site)}">${escapeHtml(s.source_site)} (${s.match_count})</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Toggle select all
+        function toggleSelectAll() {
+            const checked = document.getElementById('select-all').checked;
+            document.querySelectorAll('.match-checkbox').forEach(cb => cb.checked = checked);
+        }
+
+        // Delete selected matches
+        async function deleteSelected() {
+            const selected = Array.from(document.querySelectorAll('.match-checkbox:checked')).map(cb => parseInt(cb.value));
+            if (selected.length === 0) {
+                showNotification('No items selected', 'error');
+                return;
+            }
+
+            if (!confirm(`Delete ${selected.length} selected matches?`)) return;
+
+            try {
+                await fetch('/api/keywords/matches', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: selected })
+                });
+                showNotification(`Deleted ${selected.length} matches`, 'success');
+                loadMatches(currentPage);
+                loadStats();
+            } catch (error) {
+                showNotification('Failed to delete', 'error');
+            }
+        }
+
+        // Delete all matches
+        async function deleteAll() {
+            const keywordId = filterKeyword.value;
+            const msg = keywordId ? 'Delete all matches for this keyword?' : 'Delete ALL matches?';
+            if (!confirm(msg)) return;
+
+            try {
+                await fetch('/api/keywords/matches/all', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword_id: keywordId || null })
+                });
+                showNotification('All matches deleted', 'success');
+                loadMatches(1);
+                loadStats();
+            } catch (error) {
+                showNotification('Failed to delete', 'error');
+            }
+        }
+
+        // Search existing articles
+        async function searchExisting() {
+            try {
+                showNotification('Searching...', 'info');
+                const response = await fetch('/api/keywords/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ limit: 200 })
+                });
+                const data = await response.json();
+                showNotification(`Found ${data.matchesFound} matches in ${data.articlesSearched} articles`, 'success');
+                loadMatches(1);
+                loadStats();
+            } catch (error) {
+                showNotification('Search failed', 'error');
+            }
+        }
+
+        // Reset scan
+        async function resetScan() {
+            try {
+                await fetch('/api/keywords/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lookback: 100 })
+                });
+                showNotification('Scan reset - checking last 100 articles', 'success');
+                loadKeywords();
+            } catch (error) {
+                showNotification('Failed to reset', 'error');
+            }
+        }
+
+        // Update debug info
+        function updateDebugInfo(data) {
+            document.getElementById('debug-info').innerHTML = `
+                <strong>Status:</strong><br>
+                Last Checked ID: ${data.lastCheckedId}<br>
+                Max Article ID: ${data.maxArticleId}<br>
+                Pending: ${data.pendingArticles}
+            `;
+        }
+
+        // Socket events
+        socket.on('keywords-updated', (data) => {
+            allKeywords = data.keywords;
+            renderKeywords(data.keywords);
+            monitoringToggle.checked = data.enabled;
+            updateStatusIndicator(data.enabled);
+            updateKeywordFilter(data.keywords);
+        });
+
+        socket.on('keyword-matches', (matches) => {
+            console.log('New matches:', matches);
+            // Play sound
+            try {
+                document.getElementById('notification-sound').play();
+            } catch (e) {}
+            // Reload matches and stats
+            loadMatches(1);
+            loadStats();
+            showNotification(`${matches.length} new match(es) found!`, 'success');
+        });
+
+        socket.on('matches-deleted', () => {
+            loadMatches(currentPage);
+            loadStats();
+        });
+
+        socket.on('matches-cleared', () => {
+            loadMatches(1);
+            loadStats();
+        });
+
+        // Helpers
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        function showNotification(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Refresh debug info periodically
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/keywords');
+                const data = await response.json();
+                updateDebugInfo(data);
+            } catch (e) {}
+        }, 5000);
+
+        // Refresh stats periodically
+        setInterval(loadStats, 10000);
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

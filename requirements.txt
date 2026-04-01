@@ -1,0 +1,45 @@
+# ============================================================
+# Multi-Scraper v16 - Python Dependencies
+# Install with: pip install -r requirements.txt
+# ============================================================
+
+# ── HTTP / Web scraping ──────────────────────────────────────
+requests==2.32.3
+cloudscraper==1.2.71
+beautifulsoup4==4.12.3
+lxml>=5.2.1
+fake-useragent==2.1.0
+
+# ── Database ─────────────────────────────────────────────────
+mysql-connector-python==8.1.0
+
+# ── Image processing ─────────────────────────────────────────
+Pillow==10.4.0
+opencv-python-headless>=4.9.0   # headless (no GUI) - safe for servers/Docker
+numpy>=2.0.0
+
+# ── Date / timezone ──────────────────────────────────────────
+python-dateutil==2.8.2
+pytz==2024.1
+
+# ── CLI / terminal UI ────────────────────────────────────────
+rich==13.7.1
+
+# ── OpenAI (rechecker / AI features) ────────────────────────
+openai==1.95.1
+
+# ── Face search (ONNX / InsightFace models) ─────────────────
+onnxruntime>=1.17.0              # CPU-only ONNX runtime
+# onnxruntime-gpu>=1.17.0        # Uncomment for GPU support
+
+# ── Event clustering ─────────────────────────────────────────
+sentence-transformers>=2.6.0    # Bengali NLP embeddings (LaBSE)
+scikit-learn>=1.5.1
+
+# ── PyTorch (required by sentence-transformers) ─────────────
+# CPU-only build (smaller, suitable for servers without GPU):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# GPU (CUDA 11.8) build:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu118
+# The line below installs the default (GPU if CUDA available, else CPU):
+torch>=2.0.0

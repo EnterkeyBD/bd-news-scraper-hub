@@ -1,0 +1,22 @@
+{
+  "global_cycle_time": null,
+  "scrapers": {
+    "bdnews24": null,
+    "prothomalo": null,
+    "jugantor": null,
+    "jagonews24": null,
+    "ittefaq": null,
+    "kalbela": null,
+    "dhakapost": null,
+    "desh": null,
+    "samakal": null,
+    "sangbad": null,
+    "amadershomoy": null,
+    "bdpratidin": null,
+    "mzamin": null,
+    "dhakatribune": null,
+    "janakantha": null,
+    "boishakhi": null
+  },
+  "description": "Set cycle times in seconds. null = use default. global_cycle_time overrides all unless scraper has specific value."
+}

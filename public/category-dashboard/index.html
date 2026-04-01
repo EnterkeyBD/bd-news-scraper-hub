@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Management Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📰 News Scraper Category Dashboard</h1>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Search categories..." />
+                </div>
+                <button id="addCategoryBtn" class="btn btn-primary">➕ Add Category</button>
+                <button id="refreshBtn" class="btn btn-secondary">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <!-- Statistics Panel -->
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCategories">0</div>
+                <div class="stat-label">Total Categories</div>
+            </div>
+            <div class="stat-card active">
+                <div class="stat-value" id="activeCategories">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card disabled">
+                <div class="stat-value" id="disabledCategories">0</div>
+                <div class="stat-label">Disabled</div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-site="all">All Sites</button>
+            <button class="tab-btn" data-site="kalbela">Kalbela.com</button>
+            <button class="tab-btn" data-site="desh">Desh.tv</button>
+            <button class="tab-btn" data-site="jugantor">Jugantor</button>
+            <button class="tab-btn" data-site="ittefaq">Ittefaq</button>
+            <button class="tab-btn" data-site="bdnews24">BD News24</button>
+            <button class="tab-btn" data-site="prothomalo">Prothom Alo</button>
+            <button class="tab-btn" data-site="dhakapost">DhakaPost</button>
+            <button class="tab-btn" data-site="jagonews24">Jagonews24</button>
+            <button class="tab-btn" data-site="samakal">Samakal</button>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="status-filter">
+            <button class="filter-btn active" data-filter="all">📂 All Categories</button>
+            <button class="filter-btn" data-filter="disabled">❌ Disabled Only</button>
+            <button class="filter-btn" data-filter="active">✅ Active Only</button>
+            <button id="expandDisabledBtn" class="btn btn-secondary">🔍 Show All Disabled</button>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions" id="bulkActions" style="display: none;">
+            <span id="selectedCount">0 selected</span>
+            <button id="bulkEnableBtn" class="btn btn-success">✓ Enable Selected</button>
+            <button id="bulkDisableBtn" class="btn btn-danger">✗ Disable Selected</button>
+            <button id="clearSelectionBtn" class="btn btn-secondary">Clear</button>
+        </div>
+
+        <!-- Categories Tree -->
+        <div class="categories-container">
+            <div id="categoriesTree" class="categories-tree">
+                <div class="loading">Loading categories...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Add New Category</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label for="categoryUrl">Category URL *</label>
+                        <input type="url" id="categoryUrl" name="categoryUrl" required 
+                               placeholder="https://www.kalbela.com/category/subcategory">
+                        <small>Enter the full URL of the category page</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sectionLabel">Section Label *</label>
+                        <input type="text" id="sectionLabel" name="sectionLabel" required 
+                               placeholder="category-subcategory">
+                        <small>Unique label for this category (e.g., sports-football)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="site">Site *</label>
+                        <select id="site" name="site" required>
+                            <option value="">Select a site...</option>
+                            <option value="kalbela">Kalbela.com</option>
+                            <option value="desh">Desh.tv</option>
+                            <option value="jugantor">Jugantor</option>
+                            <option value="ittefaq">Ittefaq</option>
+                            <option value="bdnews24">BD News24</option>
+                            <option value="prothomalo">Prothom Alo</option>
+                            <option value="dhakapost">DhakaPost</option>
+                            <option value="jagonews24">Jagonews24</option>
+                            <option value="samakal">Samakal</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="isActive" name="isActive" checked>
+                            <span>Active (start scraping immediately)</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

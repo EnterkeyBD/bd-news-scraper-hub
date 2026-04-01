@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Details - Scraper Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="article-view.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Article Details</h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="history.back()">← Back</button>
+                <a href="find-people.html" class="btn btn-secondary">Find People</a>
+                <a href="articles.html" class="btn btn-secondary">Articles</a>
+                <a href="index.html" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>Loading article...</p>
+        </div>
+
+        <!-- Article Content -->
+        <div class="article-container" id="articleContainer" style="display:none;">
+            <div class="article-image-section">
+                <img id="articleImage" src="" alt="Article Image" onerror="handleImageError(this)">
+            </div>
+
+            <div class="article-details">
+                <div class="article-meta">
+                    <span class="source-badge" id="sourceBadge"></span>
+                    <span class="published-date" id="publishedDate"></span>
+                </div>
+
+                <h1 class="article-headline" id="articleHeadline"></h1>
+
+                <div class="article-info-grid">
+                    <div class="info-item">
+                        <label>Category:</label>
+                        <span id="articleCategory">-</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Image:</label>
+                        <span id="articleImageName">-</span>
+                    </div>
+                </div>
+
+                <div class="tags-section" id="tagsSection" style="display:none;">
+                    <label>Tags:</label>
+                    <div class="tags-container" id="tagsContainer"></div>
+                </div>
+
+                <div class="article-content-section">
+                    <label>Article Content:</label>
+                    <div class="article-content" id="articleContent">
+                        <p class="no-content">No content available</p>
+                    </div>
+                </div>
+
+                <div class="article-actions">
+                    <a id="viewArticleLink" href="#" target="_blank" class="btn btn-primary btn-lg">
+                        View Original Article →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Only State (No Article Data) -->
+        <div class="image-only-container" id="imageOnlyContainer" style="display:none;">
+            <div class="image-only-content">
+                <div class="image-only-image">
+                    <img id="imageOnlyImg" src="" alt="News Image">
+                </div>
+                <div class="image-only-message">
+                    <h2>Image Found</h2>
+                    <p>This image exists in the database, but no article details are available.</p>
+                    <p class="image-filename" id="imageOnlyFilename"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-container" id="errorContainer" style="display:none;">
+            <div class="error-content">
+                <h2>Unable to Load Article</h2>
+                <p id="errorMessage">An error occurred while loading the article.</p>
+                <button class="btn btn-primary" onclick="history.back()">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="article-view.js"></script>
+</body>
+</html>

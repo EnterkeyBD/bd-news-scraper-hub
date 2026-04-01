@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycle Time Configuration - Scraper Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .cycle-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .page-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+
+        .page-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .header-back-btn {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+        }
+
+        .header-back-btn:hover {
+            background: #f8f9ff;
+            transform: translateY(-50%) translateX(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-back-btn:active {
+            transform: translateY(-50%) translateX(-3px) scale(0.98);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-back-btn span:first-child {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .header-back-btn:hover span:first-child {
+            transform: translateX(-3px);
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-row input[type="number"] {
+            flex: 0 0 150px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .input-row select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .scrapers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .scraper-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .scraper-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .scraper-card.has-custom {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f3ff 0%, #faf0ff 100%);
+        }
+
+        .scraper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .scraper-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .scraper-input {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .scraper-input input {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .scraper-input select {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .effective-time {
+            font-size: 13px;
+            color: #666;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .effective-time strong {
+            color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cycle-container">
+        <div class="page-header">
+            <a href="index.html" class="header-back-btn">
+                <span>←</span>
+                <span>Back to Dashboard</span>
+            </a>
+            <h1>⏱️ Scraper Cycle Time Configuration</h1>
+            <p>Configure how frequently each scraper checks for new articles</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="section">
+            <div class="section-title">📊 Overview</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="value" id="statTotalScrapers">8</div>
+                    <div class="label">Total Scrapers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="statCustomConfigs">0</div>
+                    <div class="label">Custom Configs</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="statAvgCycles">144</div>
+                    <div class="label">Avg Cycles/Day</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Setting -->
+        <div class="section">
+            <div class="section-title">🌐 Global Setting (All Scrapers)</div>
+            <div class="form-group">
+                <label>Set cycle time for all scrapers at once</label>
+                <div class="input-row">
+                    <input type="number" id="globalValue" placeholder="e.g., 10" min="1">
+                    <select id="globalUnit">
+                        <option value="60">Minutes</option>
+                        <option value="1">Seconds</option>
+                        <option value="3600">Hours</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="setGlobal()">✓ Apply to All</button>
+                </div>
+                <div class="info-box">
+                    💡 <strong>Tip:</strong> Global setting applies to all scrapers unless they have individual overrides
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Scrapers -->
+        <div class="section">
+            <div class="section-title">🔧 Individual Scraper Settings</div>
+            <div class="scrapers-grid" id="scrapersGrid">
+                <div style="text-align: center; padding: 40px; grid-column: 1/-1;">Loading...</div>
+            </div>
+            <div id="alert" class="alert"></div>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="saveAll()">💾 Save All Changes</button>
+                <button class="btn btn-secondary" onclick="loadConfig()">🔄 Reload</button>
+                <button class="btn btn-danger" onclick="resetAll()">⚠️ Reset All to Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaults = {
+            bdnews24: 600,
+            prothomalo: 600,
+            jugantor: 600,
+            jagonews24: 600,
+            ittefaq: 600,
+            kalbela: 600,
+            dhakapost: 600,
+            desh: 60,
+            samakal: 600,
+            sangbad: 600,
+            amadershomoy: 600,
+            bdpratidin: 600,
+            mzamin: 600
+        };
+
+        let config = {
+            global_cycle_time: null,
+            scrapers: {}
+        };
+
+        // Load configuration
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/cycle-config');
+                if (response.ok) {
+                    config = await response.json();
+                    renderScrapers();
+                    updateStats();
+                } else {
+                    throw new Error('Failed to load configuration');
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+                // Use defaults if error
+                config = {
+                    global_cycle_time: null,
+                    scrapers: Object.keys(defaults).reduce((acc, key) => {
+                        acc[key] = null;
+                        return acc;
+                    }, {})
+                };
+                renderScrapers();
+                updateStats();
+            }
+        }
+
+        // Save configuration
+        async function saveConfig() {
+            try {
+                const response = await fetch('/api/cycle-config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(config)
+                });
+                
+                if (response.ok) {
+                    showAlert('✓ Configuration saved successfully!', 'success');
+                    updateStats();
+                    return true;
+                } else {
+                    throw new Error('Failed to save');
+                }
+            } catch (error) {
+                showAlert('Error saving configuration: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Get effective cycle time
+        function getEffectiveTime(scraperName) {
+            if (config.scrapers[scraperName] !== null && config.scrapers[scraperName] !== undefined) {
+                return config.scrapers[scraperName];
+            }
+            if (config.global_cycle_time !== null) {
+                return config.global_cycle_time;
+            }
+            return defaults[scraperName] || 600;
+        }
+
+        // Format seconds
+        function formatTime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+            }
+            const hours = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+        }
+
+        // Render scrapers
+        function renderScrapers() {
+            const grid = document.getElementById('scrapersGrid');
+            grid.innerHTML = '';
+
+            Object.keys(defaults).sort().forEach(name => {
+                const effectiveTime = getEffectiveTime(name);
+                const hasCustom = config.scrapers[name] !== null && config.scrapers[name] !== undefined;
+                const cyclesPerDay = Math.floor(86400 / effectiveTime);
+
+                const card = document.createElement('div');
+                card.className = 'scraper-card' + (hasCustom ? ' has-custom' : '');
+                card.innerHTML = `
+                    <div class="scraper-header">
+                        <div class="scraper-name">${name}</div>
+                        ${hasCustom ? '<span class="badge">CUSTOM</span>' : ''}
+                    </div>
+                    <div class="scraper-input">
+                        <input type="number" 
+                               id="scraper-${name}" 
+                               placeholder="${Math.floor(effectiveTime / 60)}"
+                               min="1"
+                               value="${hasCustom ? Math.floor(config.scrapers[name] / 60) : ''}">
+                        <select id="unit-${name}">
+                            <option value="60" selected>min</option>
+                            <option value="1">sec</option>
+                        </select>
+                    </div>
+                    <div class="effective-time">
+                        <strong>${formatTime(effectiveTime)}</strong> (${cyclesPerDay}/day)
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Update stats
+        function updateStats() {
+            const customCount = Object.values(config.scrapers).filter(v => v !== null).length;
+            const totalScrapers = Object.keys(defaults).length;
+            
+            let totalCycles = 0;
+            Object.keys(defaults).forEach(name => {
+                const effectiveTime = getEffectiveTime(name);
+                totalCycles += Math.floor(86400 / effectiveTime);
+            });
+            const avgCycles = Math.floor(totalCycles / totalScrapers);
+
+            document.getElementById('statTotalScrapers').textContent = totalScrapers;
+            document.getElementById('statCustomConfigs').textContent = customCount;
+            document.getElementById('statAvgCycles').textContent = avgCycles;
+        }
+
+        // Set global
+        async function setGlobal() {
+            const value = parseInt(document.getElementById('globalValue').value);
+            const unit = parseInt(document.getElementById('globalUnit').value);
+
+            if (!value || value < 1) {
+                showAlert('Please enter a valid time value', 'error');
+                return;
+            }
+
+            config.global_cycle_time = value * unit;
+            
+            if (await saveConfig()) {
+                document.getElementById('globalValue').value = '';
+                renderScrapers();
+            }
+        }
+
+        // Save all
+        async function saveAll() {
+            Object.keys(defaults).forEach(name => {
+                const input = document.getElementById(`scraper-${name}`);
+                const unit = parseInt(document.getElementById(`unit-${name}`).value);
+                
+                if (input.value && parseInt(input.value) > 0) {
+                    config.scrapers[name] = parseInt(input.value) * unit;
+                } else {
+                    config.scrapers[name] = null;
+                }
+            });
+
+            if (await saveConfig()) {
+                renderScrapers();
+            }
+        }
+
+        // Reset all
+        async function resetAll() {
+            if (!confirm('Reset all settings to defaults?')) return;
+
+            config.global_cycle_time = null;
+            Object.keys(config.scrapers).forEach(name => {
+                config.scrapers[name] = null;
+            });
+
+            if (await saveConfig()) {
+                renderScrapers();
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load on page load
+        window.addEventListener('load', loadConfig);
+    </script>
+</body>
+</html>

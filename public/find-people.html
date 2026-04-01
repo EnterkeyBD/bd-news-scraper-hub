@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find People - Scraper Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="find-people.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Find People</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">Dashboard</a>
+                <a href="articles.html" class="btn btn-secondary">Articles</a>
+            </div>
+        </header>
+
+        <!-- Index Status Bar -->
+        <div class="index-status-bar" id="indexStatusBar">
+            <div class="index-info">
+                <span id="indexStatus">Checking index...</span>
+            </div>
+            <div class="index-actions">
+                <div class="auto-build-control">
+                    <label for="autoBuildThreshold">Auto-build at:</label>
+                    <input type="number" id="autoBuildThreshold" min="0" max="1000" step="1" placeholder="e.g., 10">
+                    <span class="auto-build-label">new images</span>
+                    <button class="btn btn-secondary btn-sm" id="saveAutoBuildBtn" onclick="saveAutoBuildThreshold()">Save</button>
+                    <button class="btn btn-danger btn-sm" id="disableAutoBuildBtn" onclick="disableAutoBuild()" title="Disable auto-build">Disable</button>
+                    <span class="auto-build-status" id="autoBuildStatus"></span>
+                </div>
+                <button class="btn btn-primary btn-sm" id="buildIndexBtn" onclick="buildIndex()">Build Index</button>
+            </div>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="modePerson" onclick="setSearchMode('person')">Find Person</button>
+            <button class="mode-btn" id="modeRelation" onclick="setSearchMode('relation')">Find Relations</button>
+            <button class="mode-btn" id="modePair" onclick="setSearchMode('pair')">Find Pair</button>
+        </div>
+
+        <!-- Upload Section (person / relation modes) -->
+        <div class="upload-section" id="uploadSectionSingle">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" accept="image/*" multiple hidden>
+                <div class="upload-placeholder" id="uploadPlaceholder">
+                    <div class="upload-icon">+</div>
+                    <p>Drag & drop photos or click to browse</p>
+                    <p class="upload-hint" id="uploadHint">Upload 1-10 clear face photos of the same person</p>
+                    <p class="upload-hint-small" id="uploadHintSmall">Multiple images improve accuracy by 15-25%</p>
+                </div>
+                <div class="upload-preview-grid" id="uploadPreviewGrid" style="display:none;">
+                    <!-- Preview images will be inserted here dynamically -->
+                </div>
+            </div>
+
+            <div class="search-controls">
+                <div class="threshold-control">
+                    <label for="threshold">Similarity Threshold:</label>
+                    <input type="range" id="threshold" min="0.2" max="0.8" step="0.05" value="0.4">
+                    <span id="thresholdValue">0.40</span>
+                </div>
+                <div class="threshold-control" id="clusterThresholdControl" style="display:none;">
+                    <label for="clusterThreshold">Cluster Threshold:</label>
+                    <input type="range" id="clusterThreshold" min="0.2" max="0.6" step="0.05" value="0.35">
+                    <span id="clusterThresholdValue">0.35</span>
+                </div>
+                <button class="btn btn-primary btn-lg" id="searchBtn" onclick="searchFaces()" disabled>
+                    Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Section (pair mode) -->
+        <div class="upload-section" id="uploadSectionPair" style="display:none;">
+            <div class="pair-upload-container">
+                <div class="pair-upload-side">
+                    <div class="pair-label">Person A</div>
+                    <div class="upload-zone pair-zone" id="uploadZoneA">
+                        <input type="file" id="fileInputA" accept="image/*" multiple hidden>
+                        <div class="upload-placeholder" id="uploadPlaceholderA">
+                            <div class="upload-icon">+</div>
+                            <p>Drop photos of Person A</p>
+                        </div>
+                        <div class="upload-preview-grid" id="uploadPreviewGridA" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="pair-upload-side">
+                    <div class="pair-label">Person B</div>
+                    <div class="upload-zone pair-zone" id="uploadZoneB">
+                        <input type="file" id="fileInputB" accept="image/*" multiple hidden>
+                        <div class="upload-placeholder" id="uploadPlaceholderB">
+                            <div class="upload-icon">+</div>
+                            <p>Drop photos of Person B</p>
+                        </div>
+                        <div class="upload-preview-grid" id="uploadPreviewGridB" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="pair-hint">Upload photos of two different people to find all images where they appear together</p>
+            <div class="search-controls">
+                <div class="threshold-control">
+                    <label for="pairThreshold">Similarity Threshold:</label>
+                    <input type="range" id="pairThreshold" min="0.2" max="0.8" step="0.05" value="0.4">
+                    <span id="pairThresholdValue">0.40</span>
+                </div>
+                <button class="btn btn-primary btn-lg" id="pairSearchBtn" onclick="searchPair()" disabled>
+                    Find Together
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+            <div class="spinner"></div>
+            <p id="loadingText">Analyzing faces...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection" style="display:none;">
+            <div class="results-header">
+                <h2 id="resultsTitle">Results</h2>
+                <button class="btn btn-secondary btn-sm" id="clearResultsBtn" onclick="clearResults()">Clear Results</button>
+            </div>
+            <div class="results-grid" id="resultsGrid"></div>
+        </div>
+
+        <!-- Relation Results Section -->
+        <div class="relation-results-section" id="relationResultsSection" style="display:none;">
+            <div class="results-header">
+                <h2 id="relationResultsTitle">Relations</h2>
+                <button class="btn btn-secondary btn-sm" onclick="clearResults()">Clear Results</button>
+            </div>
+            <div id="relationResultsContainer"></div>
+        </div>
+
+        <!-- Pair Results Section -->
+        <div class="results-section" id="pairResultsSection" style="display:none;">
+            <div class="results-header">
+                <h2 id="pairResultsTitle">Results</h2>
+                <button class="btn btn-secondary btn-sm" onclick="clearResults()">Clear Results</button>
+            </div>
+            <div class="results-grid" id="pairResultsGrid"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <p id="emptyText">No matching faces found. Try lowering the similarity threshold.</p>
+        </div>
+
+        <!-- Index Build Progress -->
+        <div class="build-progress" id="buildProgress" style="display:none;">
+            <h3>Building Face Index</h3>
+            <div class="build-log" id="buildLog"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="find-people.js"></script>
+</body>
+</html>

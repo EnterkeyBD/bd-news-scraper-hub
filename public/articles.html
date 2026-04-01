@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraped Articles - Scraper Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="articles.css">
+    <link rel="stylesheet" href="scheduler.css">
+    <link rel="stylesheet" href="toast-progress.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Recheck Progress Bar -->
+        <div id="recheck-progress-container" style="display:none; position:fixed; left:24px; bottom:24px; z-index:9999; background:#222; color:#fff; padding:16px 24px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.18); min-width:220px;">
+            <span id="recheck-progress-text" style="font-size:18px; font-weight:bold; color:#fff; display:block; margin-bottom:8px;">Rechecking: 0/0</span>
+            <div style="background:#444; border-radius:4px; height:8px; width:200px;">
+                <div id="recheck-progress-bar" style="background:#2196f3; height:8px; width:0%; border-radius:4px; transition:width 0.3s;"></div>
+            </div>
+        </div>
+        <header>
+            <h1>📄 Scraped News Articles</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">← Back to Dashboard</a>
+                <a href="report.html" class="btn btn-warning btn-sm">📊 Report</a>
+                <a href="categories.html" class="btn btn-info">📂 Categories</a>
+                <button id="recheck-articles-btn" class="btn btn-info">🔄 Recheck All Articles</button>
+                <button id="delete-all-btn" class="btn btn-danger" onclick="deleteAllArticles()">🗑️ Delete All</button>
+                <button id="open-scheduler-btn" class="btn btn-secondary">⏰ Scheduler</button>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-label">Total Articles</div>
+                <div class="stat-value" id="total-articles">0</div>
+            </div>
+            <div class="stat-card running">
+                <div class="stat-label">Today's Articles</div>
+                <div class="stat-value" id="today-articles">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Ittefaq</div>
+                <div class="stat-value" id="ittefaq-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Jugantor</div>
+                <div class="stat-value" id="jugantor-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Kalbela</div>
+                <div class="stat-value" id="kalbela-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Desh TV</div>
+                <div class="stat-value" id="desh-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">DhakaPost</div>
+                <div class="stat-value" id="dhakapost-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Jagonews24</div>
+                <div class="stat-value" id="jagonews24-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">BDNews24</div>
+                <div class="stat-value" id="bdnews24-count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Prothom Alo</div>
+                <div class="stat-value" id="prothomalo-count">0</div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="filters-container">
+            <div class="filter-group">
+                <label for="source-filter">Source:</label>
+                <select id="source-filter" class="filter-select">
+                    <option value="">All Sources</option>
+                    <option value="ittefaq.com.bd">Ittefaq</option>
+                    <option value="jugantor.com">Jugantor</option>
+                    <option value="kalbela.com">Kalbela</option>
+                    <option value="desh.tv">Desh TV</option>
+                    <option value="www.dhakapost.com">DhakaPost</option>
+                    <option value="jagonews24.com">Jagonews24</option>
+                    <option value="bdnews24.com">BDNews24</option>
+                    <option value="prothomalo.com">Prothom Alo</option>
+                    <option value="samakal">Samakal</option>
+                    <option value="sangbad">Sangbad</option>
+                    <option value="amadershomoy">AmaderShomoy</option>
+                    <option value="bdpratidin">BD Pratidin</option>
+                    <option value="mzamin">Mzamin</option>
+                    <option value="dhakatribune">Dhaka Tribune</option>
+                    <option value="janakantha">Janakantha</option>
+                    <option value="boishakhi">Boishakhi</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="date-filter">Date:</label>
+                <select id="date-filter" class="filter-select">
+                    <option value="">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="category-filter">Category:</label>
+                <select id="category-filter" class="filter-select">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+
+            <div class="filter-group search-group">
+                <label for="search-input">Search:</label>
+                <input type="text" id="search-input" class="search-input" placeholder="Search headlines...">
+            </div>
+
+            <div class="filter-actions">
+                <button id="apply-filter-btn" class="btn btn-primary">Apply Filters</button>
+                <button id="clear-filter-btn" class="btn btn-secondary">Clear</button>
+            </div>
+        </div>
+
+        <!-- Articles Table -->
+        <div class="table-container">
+            <div class="table-controls">
+                <div class="pagination-info">
+                    Showing <span id="showing-from">0</span> to <span id="showing-to">0</span> of <span id="total-count">0</span> articles
+                </div>
+                <div class="per-page">
+                    <label>Per page:</label>
+                    <select id="per-page-select">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bulk Action Bar -->
+            <div id="bulk-action-bar" class="bulk-action-bar" style="display:none;">
+                <span id="bulk-selected-count">0 selected</span>
+                <button class="btn btn-danger btn-sm" onclick="deleteSelectedArticles()">🗑️ Delete Selected</button>
+                <button class="btn btn-secondary btn-sm" onclick="clearSelection()">✕ Clear Selection</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="articles-table">
+                    <thead>
+                        <tr>
+                            <th class="col-check"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this.checked)" title="Select all on page"></th>
+                            <th class="col-id">ID</th>
+                            <th class="col-image">Image</th>
+                            <th class="col-headline">Headline</th>
+                            <th class="col-source">Source</th>
+                            <th class="col-category">Category</th>
+                            <th class="col-date">Published</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="articles-tbody">
+                        <tr>
+                            <td colspan="8" class="loading-cell">
+                                <div class="loader"></div>
+                                <p>Loading articles...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <button id="first-page-btn" class="btn btn-sm">First</button>
+                <button id="prev-page-btn" class="btn btn-sm">Previous</button>
+                <span class="page-info">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                <button id="next-page-btn" class="btn btn-sm">Next</button>
+                <button id="last-page-btn" class="btn btn-sm">Last</button>
+            </div>
+        </div>
+
+        <!-- Scheduler Modal -->
+        <div id="scheduler-modal" class="modal" style="display:none;">
+          <div class="modal-content">
+            <span class="close" id="close-scheduler-modal">&times;</span>
+            <h2>Schedule Article Recheck</h2>
+            <form id="scheduler-form">
+              <label for="schedule-type">Frequency:</label>
+              <select id="schedule-type" name="schedule-type">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+              <label for="schedule-time">Time:</label>
+              <input type="time" id="schedule-time" name="schedule-time" required>
+              <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" class="btn btn-info">Set Schedule</button>
+                <button type="button" id="reset-schedule-btn" class="btn btn-danger">Reset Schedule</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+    </div>
+
+    <!-- Article Details Modal -->
+    <div id="article-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modal-headline">Article Details</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="article-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Article Modal -->
+    <div id="edit-article-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Edit Article</h2>
+                <span class="close" id="close-edit-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-article-id">
+                <div class="edit-form-group">
+                    <label for="edit-headline">Headline</label>
+                    <input type="text" id="edit-headline" class="edit-input" placeholder="Article headline...">
+                </div>
+                <div class="edit-form-group">
+                    <label for="edit-image">Image</label>
+                    <div class="edit-image-section">
+                        <img id="edit-image-preview" src="" alt="Article image" class="edit-image-preview" style="display:none;">
+                        <div id="edit-no-image-text" class="edit-no-image">No Image</div>
+                        <div class="edit-image-actions">
+                            <label for="edit-image-file" class="btn btn-secondary btn-upload">Choose New Image</label>
+                            <input type="file" id="edit-image-file" accept="image/*" style="display:none;">
+                            <span id="edit-image-filename" class="edit-image-filename"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-form-group">
+                    <label for="edit-tags">Tags</label>
+                    <input type="text" id="edit-tags" class="edit-input" placeholder="Tags (comma separated)...">
+                </div>
+                <div class="edit-form-group">
+                    <label for="edit-content">Content</label>
+                    <textarea id="edit-content" class="edit-textarea" rows="12" placeholder="Article content..."></textarea>
+                </div>
+                <div class="edit-form-actions">
+                    <button id="save-article-btn" class="btn btn-primary" onclick="saveArticle()">Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="articles.js"></script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraping Report - Scraper Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ── Report Page Styles ── */
+        .report-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            padding: 24px 28px;
+            margin-bottom: 22px;
+        }
+
+        .report-card h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Preset buttons */
+        .preset-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 9px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 20px;
+            background: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover { border-color: #6366f1; color: #6366f1; }
+        .preset-btn.active { background: #6366f1; border-color: #6366f1; color: white; }
+
+        /* Filter row */
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: flex-end;
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-item label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .filter-item input[type="date"],
+        .filter-item select {
+            padding: 9px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            min-width: 160px;
+        }
+
+        .filter-item input[type="date"]:focus,
+        .filter-item select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+
+        .btn-generate {
+            padding: 10px 28px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
+        .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* Summary cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .s-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            border-left: 4px solid #6366f1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .s-card.green  { border-color: #10b981; }
+        .s-card.amber  { border-color: #f59e0b; }
+        .s-card.red    { border-color: #ef4444; }
+        .s-card.blue   { border-color: #3b82f6; }
+
+        .s-card-label { font-size: 0.78rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .s-card-value { font-size: 1.8rem; font-weight: 800; color: #111827; line-height: 1; }
+        .s-card-sub   { font-size: 0.78rem; color: #6b7280; }
+
+        /* Results table */
+        .result-table-wrapper { overflow-x: auto; }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.93rem;
+        }
+
+        .result-table thead th {
+            background: #f9fafb;
+            padding: 11px 14px;
+            text-align: left;
+            font-weight: 700;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .result-table thead th.num { text-align: right; }
+
+        .result-table tbody tr:hover { background: #f5f3ff; }
+
+        .result-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+            vertical-align: middle;
+        }
+
+        .result-table td.num { text-align: right; font-weight: 700; }
+        .result-table td.pct { text-align: right; color: #6b7280; }
+
+        .result-table tfoot td {
+            font-weight: 800;
+            background: #f3f4f6;
+            border-top: 2px solid #d1d5db;
+            padding: 11px 14px;
+        }
+
+        .result-table tfoot td.num { text-align: right; }
+
+        /* Source badge */
+        .src-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Category breakdown */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 4px;
+        }
+        .cat-card {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .cat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .cat-card-header .src-total { font-weight: 800; color: #374151; }
+        .cat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.88rem;
+        }
+        .cat-row:last-child { border-bottom: none; }
+        .cat-row .cat-name { color: #374151; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cat-row .cat-count { font-weight: 700; color: #6366f1; margin-left: 8px; white-space: nowrap; }
+        .cat-row .cat-bar { width: 80px; height: 5px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin: 0 10px; flex-shrink: 0; }
+        .cat-row .cat-bar-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 3px; }
+
+        /* Daily breakdown table */
+        .daily-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .daily-table th { background: #f9fafb; padding: 9px 14px; text-align: left; font-weight: 700; color: #374151; border-bottom: 2px solid #e5e7eb; }
+        .daily-table td { padding: 8px 14px; border-bottom: 1px solid #f3f4f6; }
+        .daily-table td.num { text-align: right; font-weight: 700; }
+        .daily-table tr.weekend { background: #fefce8; }
+
+        /* Empty / loading state */
+        .state-box {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .state-box .icon { font-size: 3rem; margin-bottom: 12px; }
+        .state-box p { font-size: 1rem; }
+        .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid #e5e7eb; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .export-btn {
+            padding: 8px 18px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .export-btn:hover { background: #059669; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .report-period {
+            font-size: 0.85rem;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* Source name color helpers */
+        .src-ittefaq      { background: #e0f2fe; color: #0369a1; }
+        .src-jugantor     { background: #fef3c7; color: #92400e; }
+        .src-kalbela      { background: #d1fae5; color: #065f46; }
+        .src-desh         { background: #fce7f3; color: #9d174d; }
+        .src-dhakapost    { background: #ede9fe; color: #4c1d95; }
+        .src-jagonews24   { background: #fee2e2; color: #991b1b; }
+        .src-bdnews24     { background: #dbeafe; color: #1e40af; }
+        .src-prothomalo   { background: #f0fdf4; color: #14532d; }
+        .src-samakal      { background: #fef9c3; color: #713f12; }
+        .src-sangbad      { background: #f0f9ff; color: #075985; }
+        .src-amadershomoy { background: #fdf4ff; color: #701a75; }
+        .src-bdpratidin   { background: #fff1f2; color: #881337; }
+        .src-mzamin       { background: #f0fdf4; color: #166534; }
+        .src-dhakatribune { background: #e1f5fe; color: #0277bd; }
+        .src-janakantha   { background: #fce4ec; color: #ad1457; }
+        .src-boishakhi    { background: #fff8e1; color: #f57f17; }
+        .src-unknown      { background: #f3f4f6; color: #374151; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📊 Scraping Report</h1>
+        <div class="header-actions">
+            <a href="index.html" class="btn btn-secondary">← Dashboard</a>
+            <a href="articles.html" class="btn btn-primary btn-sm">📄 Articles</a>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <div class="report-card">
+        <h2>🔎 Report Filters</h2>
+
+        <div class="preset-group" id="preset-group">
+            <button class="preset-btn active" data-preset="today">Today</button>
+            <button class="preset-btn" data-preset="yesterday">Yesterday</button>
+            <button class="preset-btn" data-preset="week">Last 7 Days</button>
+            <button class="preset-btn" data-preset="month">Last 30 Days</button>
+            <button class="preset-btn" data-preset="custom">Custom Range</button>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-item" id="date-from-group" style="display:none;">
+                <label>From Date</label>
+                <input type="date" id="date-from" />
+            </div>
+            <div class="filter-item" id="date-to-group" style="display:none;">
+                <label>To Date</label>
+                <input type="date" id="date-to" />
+            </div>
+            <div class="filter-item">
+                <label>Source</label>
+                <select id="source-filter">
+                    <option value="">All Sources</option>
+                    <option value="ittefaq">Ittefaq</option>
+                    <option value="jugantor">Jugantor</option>
+                    <option value="kalbela">Kalbela</option>
+                    <option value="desh">Desh TV</option>
+                    <option value="dhakapost">DhakaPost</option>
+                    <option value="jagonews24">Jagonews24</option>
+                    <option value="bdnews24">BDNews24</option>
+                    <option value="prothomalo">Prothom Alo</option>
+                    <option value="samakal">Samakal</option>
+                    <option value="sangbad">Sangbad</option>
+                    <option value="amadershomoy">AmaderShomoy</option>
+                    <option value="bdpratidin">BD Pratidin</option>
+                    <option value="mzamin">Mzamin</option>
+                    <option value="dhakatribune">Dhaka Tribune</option>
+                    <option value="janakantha">Janakantha</option>
+                    <option value="boishakhi">Boishakhi</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>&nbsp;</label>
+                <button class="btn-generate" id="generate-btn" onclick="generateReport()">
+                    <span id="gen-icon">📊</span> Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results area -->
+    <div id="results-area">
+        <div class="report-card">
+            <div class="state-box">
+                <div class="icon">📋</div>
+                <p>Select filters and click <strong>Generate Report</strong> to see results.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let currentPreset = 'today';
+
+// ── Source display names ───────────────────────────────────────────────
+const SOURCE_MAP = {
+    ittefaq:      'Ittefaq',
+    jugantor:     'Jugantor',
+    kalbela:      'Kalbela',
+    kalbelabd:    'Kalbela',
+    desh:         'Desh TV',
+    deshrupantor: 'Desh TV',
+    dhakapost:    'DhakaPost',
+    jagonews24:   'Jagonews24',
+    bdnews24:     'BDNews24',
+    prothomalo:   'Prothom Alo',
+    samakal:      'Samakal',
+    sangbad:      'Sangbad',
+    amadershomoy: 'AmaderShomoy',
+    bdpratidin:   'BD Pratidin',
+    mzamin:       'Mzamin',
+    dhakatribune: 'Dhaka Tribune',
+    janakantha:   'Janakantha',
+    boishakhi:    'Boishakhi',
+};
+
+function getDisplayName(sourceSite) {
+    if (!sourceSite) return 'Unknown';
+    const s = sourceSite.toLowerCase();
+    for (const key of Object.keys(SOURCE_MAP)) {
+        if (s.includes(key)) return SOURCE_MAP[key];
+    }
+    return sourceSite;
+}
+
+function getSourceKey(sourceSite) {
+    if (!sourceSite) return 'unknown';
+    const s = sourceSite.toLowerCase();
+    for (const key of Object.keys(SOURCE_MAP)) {
+        if (s.includes(key)) return key;
+    }
+    return 'unknown';
+}
+
+// ── Preset buttons ─────────────────────────────────────────────────────
+document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPreset = btn.dataset.preset;
+
+        const showCustom = currentPreset === 'custom';
+        document.getElementById('date-from-group').style.display = showCustom ? '' : 'none';
+        document.getElementById('date-to-group').style.display   = showCustom ? '' : 'none';
+
+        if (showCustom) {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date-from').value = today;
+            document.getElementById('date-to').value   = today;
+        }
+    });
+});
+
+// ── Generate Report ────────────────────────────────────────────────────
+async function generateReport() {
+    const btn  = document.getElementById('generate-btn');
+    const icon = document.getElementById('gen-icon');
+    btn.disabled = true;
+    icon.innerHTML = '<span class="spinner"></span>';
+
+    const source = document.getElementById('source-filter').value;
+
+    let url = '/api/report?';
+    if (currentPreset !== 'custom') {
+        url += `preset=${currentPreset}`;
+    } else {
+        const df = document.getElementById('date-from').value;
+        const dt = document.getElementById('date-to').value;
+        if (!df || !dt) { alert('Please select both From and To dates.'); btn.disabled = false; icon.textContent = '📊'; return; }
+        if (df > dt)    { alert('"From" date cannot be after "To" date.');  btn.disabled = false; icon.textContent = '📊'; return; }
+        url += `date_from=${df}&date_to=${dt}`;
+    }
+    if (source) url += `&source=${encodeURIComponent(source)}`;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Server error');
+        renderResults(data);
+    } catch (e) {
+        document.getElementById('results-area').innerHTML = `
+            <div class="report-card"><div class="state-box"><div class="icon">⚠️</div><p style="color:#ef4444">${e.message}</p></div></div>`;
+    } finally {
+        btn.disabled = false;
+        icon.textContent = '📊';
+    }
+}
+
+// ── Render ─────────────────────────────────────────────────────────────
+function renderResults(data) {
+    const area   = document.getElementById('results-area');
+    const isSingleDay = data.date_from === data.date_to;
+    const label  = isSingleDay
+        ? formatDate(data.date_from)
+        : `${formatDate(data.date_from)} – ${formatDate(data.date_to)}`;
+    const dayCount = isSingleDay ? 1 : daysBetween(data.date_from, data.date_to);
+    const avg    = dayCount > 0 ? Math.round(data.total / dayCount) : 0;
+
+    // Summary cards
+    const summaryHTML = `
+    <div class="summary-grid">
+        <div class="s-card green">
+            <div class="s-card-label">Total Articles</div>
+            <div class="s-card-value">${data.total.toLocaleString()}</div>
+            <div class="s-card-sub">${label}</div>
+        </div>
+        <div class="s-card blue">
+            <div class="s-card-label">Sources Active</div>
+            <div class="s-card-value">${data.by_source.length}</div>
+            <div class="s-card-sub">out of 16 scrapers</div>
+        </div>
+        <div class="s-card amber">
+            <div class="s-card-label">Days in Range</div>
+            <div class="s-card-value">${dayCount}</div>
+            <div class="s-card-sub">day${dayCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="s-card">
+            <div class="s-card-label">Avg / Day</div>
+            <div class="s-card-value">${avg.toLocaleString()}</div>
+            <div class="s-card-sub">articles per day</div>
+        </div>
+        ${data.by_source.length > 0 ? `
+        <div class="s-card green">
+            <div class="s-card-label">Top Source</div>
+            <div class="s-card-value" style="font-size:1.1rem;margin-top:2px;">${getDisplayName(data.by_source[0].source)}</div>
+            <div class="s-card-sub">${data.by_source[0].count.toLocaleString()} articles</div>
+        </div>` : ''}
+    </div>`;
+
+    // By-source table
+    let sourceRows = '';
+    if (data.by_source.length === 0) {
+        sourceRows = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#9ca3af;">No articles found for this period.</td></tr>`;
+    } else {
+        data.by_source.forEach((row, i) => {
+            const key  = getSourceKey(row.source);
+            const name = getDisplayName(row.source);
+            sourceRows += `
+            <tr>
+                <td style="color:#9ca3af;font-size:0.85rem;width:36px">${i + 1}</td>
+                <td><span class="src-badge src-${key}">${name}</span></td>
+                <td style="color:#6b7280;font-size:0.8rem;">${row.source}</td>
+                <td class="num">${row.count.toLocaleString()}</td>
+            </tr>`;
+        });
+    }
+
+    const sourceTableHTML = `
+    <div class="report-card">
+        <div class="section-header">
+            <h3>📰 Articles by Source</h3>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <span class="report-period">${label}</span>
+                <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+            </div>
+        </div>
+        <div class="result-table-wrapper">
+            <table class="result-table" id="source-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Source</th>
+                        <th>Source ID</th>
+                        <th class="num">Articles</th>
+                    </tr>
+                </thead>
+                <tbody>${sourceRows}</tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3"><strong>Total</strong></td>
+                        <td class="num">${data.total.toLocaleString()}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>`;
+
+    // Category breakdown per source
+    let catHTML = '';
+    if (data.by_source_category !== undefined) {
+        // Group by source
+        const srcMap = {};
+        (data.by_source_category || []).forEach(r => {
+            if (!srcMap[r.source]) srcMap[r.source] = [];
+            srcMap[r.source].push(r);
+        });
+
+        // All 16 known scrapers — always shown
+        const ALL_SOURCES = [
+            'www.ittefaq.com.bd', 'www.jugantor.com', 'www.kalbela.com',
+            'desh.tv', 'www.dhakapost.com', 'www.jagonews24.com',
+            'bdnews24', 'prothomalo', 'samakal', 'sangbad',
+            'amadershomoy', 'bdpratidin', 'www.mzamin.com',
+            'dhakatribune', 'janakantha', 'boishakhi'
+        ];
+
+        // Merge: sources with data come first in their existing order, then any remaining ALL_SOURCES
+        const orderedSources = data.by_source.map(r => r.source);
+        ALL_SOURCES.forEach(s => { if (!orderedSources.includes(s)) orderedSources.push(s); });
+
+        let cards = '';
+        orderedSources.forEach(src => {
+            const cats    = srcMap[src];
+            const key     = getSourceKey(src);
+            const name    = getDisplayName(src);
+            const srcTotal = cats ? cats.reduce((s, c) => s + c.count, 0) : 0;
+            const maxCat   = cats && cats.length > 0 ? cats[0].count : 1;
+            let rows;
+            if (cats && cats.length > 0) {
+                rows = cats.map(c => {
+                    const pct = maxCat > 0 ? Math.round((c.count / maxCat) * 100) : 0;
+                    return `<div class="cat-row">
+                        <span class="cat-name" title="${c.category}">${c.category}</span>
+                        <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%"></div></div>
+                        <span class="cat-count">${c.count.toLocaleString()}</span>
+                    </div>`;
+                }).join('');
+            } else {
+                rows = `<div class="cat-row" style="justify-content:center;color:#9ca3af;font-style:italic;">No articles in this period</div>`;
+            }
+            cards += `<div class="cat-card">
+                <div class="cat-card-header">
+                    <span class="src-badge src-${key}">${name}</span>
+                    <span class="src-total">${srcTotal > 0 ? srcTotal.toLocaleString() + ' articles' : '—'}</span>
+                </div>
+                ${rows}
+            </div>`;
+        });
+        catHTML = `<div class="report-card">
+            <div class="section-header">
+                <h3>📂 Category Breakdown by Source</h3>
+                <span class="report-period">${label}</span>
+            </div>
+            <div class="cat-grid">${cards}</div>
+        </div>`;
+    }
+
+    // Daily breakdown (only if multi-day)
+    let dailyTableHTML = '';
+    if (!isSingleDay && data.by_date.length > 0) {
+        let dailyRows = '';
+        data.by_date.forEach(d => {
+            const dow = new Date(d.date + 'T00:00:00').getDay(); // 0=Sun,6=Sat
+            const isWeekend = (dow === 0 || dow === 6);
+            dailyRows += `<tr class="${isWeekend ? 'weekend' : ''}">
+                <td>${formatDate(d.date)}</td>
+                <td>${getDayName(d.date)}</td>
+                <td class="num">${d.count.toLocaleString()}</td>
+            </tr>`;
+        });
+        dailyTableHTML = `
+        <div class="report-card">
+            <div class="section-header">
+                <h3>📅 Daily Breakdown</h3>
+                <span class="report-period">${dayCount} days</span>
+            </div>
+            <div class="result-table-wrapper">
+                <table class="daily-table">
+                    <thead><tr><th>Date</th><th>Day</th><th class="num" style="text-align:right">Articles</th></tr></thead>
+                    <tbody>${dailyRows}</tbody>
+                </table>
+            </div>
+        </div>`;
+    }
+
+    area.innerHTML = summaryHTML + sourceTableHTML + catHTML + dailyTableHTML;
+
+    // Store for CSV export
+    window._reportData = data;
+    window._reportLabel = label;
+}
+
+// ── Export CSV ─────────────────────────────────────────────────────────
+function exportCSV() {
+    const data = window._reportData;
+    if (!data) return;
+
+    let csv = 'Source,Source ID,Articles\n';
+    data.by_source.forEach(row => {
+        csv += `"${getDisplayName(row.source)}","${row.source}",${row.count}\n`;
+    });
+    csv += `"Total","",${data.total}\n`;
+
+    if (data.by_source_category && data.by_source_category.length > 0) {
+        csv += '\nSource,Category,Articles\n';
+        data.by_source_category.forEach(r => {
+            csv += `"${getDisplayName(r.source)}","${r.category}",${r.count}\n`;
+        });
+    }
+
+    if (data.by_date && data.by_date.length > 1) {
+        csv += '\nDate,Day,Articles\n';
+        data.by_date.forEach(d => {
+            csv += `${d.date},${getDayName(d.date)},${d.count}\n`;
+        });
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `scraping_report_${data.date_from}_to_${data.date_to}.csv`;
+    a.click();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str + 'T00:00:00');
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function getDayName(str) {
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    return days[new Date(str + 'T00:00:00').getDay()];
+}
+
+function daysBetween(from, to) {
+    const d1 = new Date(from + 'T00:00:00');
+    const d2 = new Date(to   + 'T00:00:00');
+    return Math.round((d2 - d1) / 86400000) + 1;
+}
+
+// Auto-generate today's report on load
+window.addEventListener('load', () => generateReport());
+</script>
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Clusters - Scraper Manager</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+    <link rel="stylesheet" href="styles.css?v=4">
+    <style>
+        .clusters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .cluster-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .cluster-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .cluster-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .cluster-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            margin-right: 20px;
+        }
+        
+        .cluster-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .cluster-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .cluster-articles {
+            margin-top: 15px;
+        }
+        
+        .article-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .article-primary {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .article-source {
+            min-width: 120px;
+            font-weight: 600;
+            color: #007bff;
+        }
+        
+        .article-headline {
+            flex: 1;
+            margin: 0 15px;
+        }
+        
+        .article-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .similarity-score {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .progress-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .progress-output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-primary { background: #007bff; color: white; }
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: black; }
+        
+        .btn-purple {
+            background-color: #6f42c1;
+            color: white;
+            border: none;
+        }
+        
+        .btn-purple:hover {
+            background-color: #5a32a3;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 Event Clusters</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary btn-sm">← Back</a>
+                <a href="articles.html" class="btn btn-primary btn-sm">📄 Articles</a>
+            </div>
+        </header>
+
+        <div class="clusters-header">
+            <h2>AI-Clustered News Events</h2>
+            <div class="cluster-controls">
+                <input type="number" id="hours-input" placeholder="Hours" value="24" style="width:80px; padding:8px; border-radius:4px; border:1px solid #ddd;">
+                <input type="number" id="threshold-input" placeholder="Threshold" value="0.75" step="0.05" style="width:90px; padding:8px; border-radius:4px; border:1px solid #ddd;">
+                <button id="run-clustering-btn" class="btn btn-success">▶ Run Clustering</button>
+                <button id="refresh-stats-btn" class="btn btn-secondary">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" id="total-clusters">-</div>
+                <div class="stat-label">Total Clusters</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="avg-articles">-</div>
+                <div class="stat-label">Avg Articles/Cluster</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="total-articles">-</div>
+                <div class="stat-label">Clustered Articles</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="recent-clusters">-</div>
+                <div class="stat-label">New (24h)</div>
+            </div>
+        </div>
+
+        <div id="clusters-container"></div>
+
+        <div class="empty-state" id="empty-state" style="display:none;">
+            <h3>No Event Clusters Found</h3>
+            <p>Run clustering to identify articles about the same events from different sources.</p>
+            <button class="btn btn-success btn-lg" onclick="runClustering()">Run First Clustering</button>
+        </div>
+    </div>
+
+    <!-- Progress Overlay -->
+    <div class="progress-overlay" id="progress-overlay">
+        <div class="progress-box">
+            <h3>🔄 Clustering in Progress...</h3>
+            <p>This may take a few minutes for the first run (downloading AI model).</p>
+            <div class="progress-output" id="progress-output">
+                Initializing...
+            </div>
+            <div style="margin-top:15px; text-align:right; display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn btn-danger" onclick="cancelClustering()">Cancel</button>
+                <button class="btn btn-secondary" onclick="closeProgress()">Hide</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentClusters = [];
+
+        // Socket.IO event listeners for real-time clustering progress
+        socket.on('clustering-progress', (data) => {
+            const output = document.getElementById('progress-output');
+            output.textContent += data.message + '\n';
+            output.scrollTop = output.scrollHeight;
+        });
+
+        socket.on('clustering-complete', (data) => {
+            if (data.success) {
+                showToast('✓ Clustering completed successfully!', 'success');
+                setTimeout(() => {
+                    closeProgress();
+                    loadClusters();
+                    loadStats();
+                }, 1000);
+            } else {
+                showToast('✗ Clustering failed: ' + data.output, 'error');
+            }
+        });
+
+        // Load clustering statistics
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/clustering/stats');
+                const data = await res.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('total-clusters').textContent = stats.total_clusters || 0;
+                    document.getElementById('avg-articles').textContent = (stats.avg_articles || 0).toFixed(1);
+                    document.getElementById('total-articles').textContent = stats.total_clustered_articles || 0;
+                    document.getElementById('recent-clusters').textContent = stats.recent_clusters_24h || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load clusters list
+        async function loadClusters() {
+            try {
+                const res = await fetch('/api/clustering/clusters?limit=50');
+                const data = await res.json();
+                
+                if (data.success && data.clusters) {
+                    currentClusters = data.clusters;
+                    displayClusters(data.clusters);
+                }
+            } catch (error) {
+                console.error('Error loading clusters:', error);
+                showToast('Failed to load clusters', 'error');
+            }
+        }
+
+        // Display clusters in the UI
+        function displayClusters(clusters) {
+            const container = document.getElementById('clusters-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (!clusters || clusters.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            container.innerHTML = clusters.map(cluster => `
+                <div class="cluster-card">
+                    <div class="cluster-header">
+                        <div class="cluster-title">
+                            ${cluster.name || 'Unnamed Event'}
+                        </div>
+                        <span class="badge badge-primary">${cluster.article_count} articles</span>
+                    </div>
+                    <div class="cluster-meta">
+                        <div class="cluster-meta-item">
+                            <strong>ID:</strong> ${cluster.id}
+                        </div>
+                        <div class="cluster-meta-item">
+                            <strong>Category:</strong> ${cluster.category || 'N/A'}
+                        </div>
+                        <div class="cluster-meta-item">
+                            <strong>Date:</strong> ${cluster.event_date || 'Unknown'}
+                        </div>
+                        <div class="cluster-meta-item">
+                            <strong>Primary:</strong> ${cluster.primary_source || 'N/A'}
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="viewClusterDetail(${cluster.id})">
+                        View Details →
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // View cluster details
+        async function viewClusterDetail(clusterId) {
+            try {
+                const res = await fetch(`/api/clustering/cluster/${clusterId}`);
+                const data = await res.json();
+                
+                if (data.success && data.cluster) {
+                    showClusterModal(data.cluster);
+                }
+            } catch (error) {
+                console.error('Error loading cluster details:', error);
+                showToast('Failed to load cluster details', 'error');
+            }
+        }
+
+        // Show cluster detail modal
+        function showClusterModal(cluster) {
+            const members = cluster.members || [];
+            const primary = members.find(m => m.is_primary) || members[0];
+            
+            const modalHTML = `
+                <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; justify-content:center; align-items:center; padding:20px;" onclick="this.remove()">
+                    <div style="background:white; border-radius:12px; max-width:900px; width:100%; max-height:90vh; overflow-y:auto; padding:30px;" onclick="event.stopPropagation()">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <h2>📰 ${cluster.cluster_name || 'Event Cluster'}</h2>
+                            <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none; border:none; font-size:24px; cursor:pointer">×</button>
+                        </div>
+                        
+                        <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin:20px 0;">
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+                                <div><strong>Category:</strong> ${cluster.category || 'N/A'}</div>
+                                <div><strong>Event Date:</strong> ${cluster.event_date || 'Unknown'}</div>
+                                <div><strong>Total Articles:</strong> ${cluster.article_count || 0}</div>
+                                <div><strong>Primary Source:</strong> ${cluster.primary_source || 'N/A'}</div>
+                            </div>
+                        </div>
+                        
+                        <h3>⭐ Primary Article (Most Detailed)</h3>
+                        ${primary ? `
+                            <div style="background:#fff3cd; padding:15px; border-radius:8px; border-left:4px solid #ffc107; margin-bottom:20px;">
+                                <div style="font-weight:600; margin-bottom:10px;">${primary.source_site}</div>
+                                <div style="font-size:18px; margin-bottom:10px;">${primary.headline || primary.actual_headline}</div>
+                                <div style="font-size:12px; color:#666; margin-bottom:10px;">
+                                    Published: ${primary.published_at || 'Unknown'} | Length: ${primary.content_length || 0} chars
+                                </div>
+                                ${primary.source_url ? `<a href="${primary.source_url}" target="_blank" style="color:#007bff;">View Original →</a>` : ''}
+                            </div>
+                        ` : '<p>No primary article found.</p>'}
+                        
+                        <h3>Related Articles from Other Sources</h3>
+                        <div style="max-height:400px; overflow-y:auto;">
+                            ${members.filter(m => !m.is_primary).map(member => `
+                                <div class="article-item" style="display:flex; padding:12px; background:#f8f9fa; border-radius:8px; margin-bottom:10px;">
+                                    <div style="min-width:120px; font-weight:600; color:#007bff;">${member.source_site}</div>
+                                    <div style="flex:1; margin:0 15px;">
+                                        <div>${member.headline || member.actual_headline}</div>
+                                        <div style="font-size:12px; color:#666; margin-top:5px;">
+                                            ${member.published_at || 'Unknown'} | ${member.content_length || 0} chars
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; gap:10px; align-items:center;">
+                                        <span class="similarity-score">
+                                            ${((member.similarity_to_primary || 0) * 100).toFixed(0)}%
+                                        </span>
+                                        ${member.source_url ? `<a href="${member.source_url}" target="_blank" style="color:#007bff;">↗</a>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="margin-top:20px; text-align:right;">
+                            <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Run clustering
+        async function runClustering() {
+            const hours = parseInt(document.getElementById('hours-input').value) || 24;
+            const threshold = parseFloat(document.getElementById('threshold-input').value) || 0.75;
+            
+            if (threshold < 0.5 || threshold > 1.0) {
+                showToast('Threshold must be between 0.50 and 1.00', 'error');
+                return;
+            }
+            
+            document.getElementById('progress-overlay').style.display = 'flex';
+            document.getElementById('progress-output').textContent = 'Starting clustering...\n';
+            
+            try {
+                const res = await fetch('/api/clustering/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hours, threshold })
+                });
+                
+                const data = await res.json();
+                
+                if (!data.status || data.status !== 'started') {
+                    closeProgress();
+                    showToast('Failed to start clustering: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                closeProgress();
+                showToast('Error starting clustering: ' + error.message, 'error');
+            }
+        }
+
+        function closeProgress() {
+            document.getElementById('progress-overlay').style.display = 'none';
+        }
+
+        async function cancelClustering() {
+            try {
+                await fetch('/api/clustering/cancel', { method: 'POST' });
+            } catch (_) {}
+            closeProgress();
+            showToast('Clustering cancelled', 'info');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 400px;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // Event listeners
+        document.getElementById('run-clustering-btn').addEventListener('click', runClustering);
+        document.getElementById('refresh-stats-btn').addEventListener('click', () => {
+            loadStats();
+            loadClusters();
+        });
+
+        // Initial load
+        loadStats();
+        loadClusters();
+    </script>
+</body>
+</html>

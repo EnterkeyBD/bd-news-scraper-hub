@@ -1,0 +1,23 @@
+node_modules/
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.env
+
+# Runtime data — mounted as volumes, no need in build context
+logs/
+news_images/
+uploaded_news_images/
+uploads_temp/
+last_run/
+
+# VS Code / editor files
+.vscode/
+*.code-workspace
+
+# Large binary caches
+face_index.pkl

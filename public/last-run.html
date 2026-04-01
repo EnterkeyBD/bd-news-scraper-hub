@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Last Run Management - Scraper Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🕐 Last Run Management</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">← Back to Dashboard</a>
+            </div>
+        </header>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Manage Last Run Timestamps</h2>
+                <p class="subtitle">Update the last processed timestamp for each scraper category</p>
+            </div>
+            
+            <div class="filters">
+                <input type="text" id="search-input" placeholder="Search scraper or category..." class="search-input">
+                <select id="scraper-filter" class="filter-select">
+                    <option value="">All Scrapers</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table id="lastrun-table">
+                    <thead>
+                        <tr>
+                            <th>Scraper</th>
+                            <th>Category</th>
+                            <th>Last Run</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lastrun-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px;">
+                                <div class="loading">Loading...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="last-run.js"></script>
+</body>
+</html>

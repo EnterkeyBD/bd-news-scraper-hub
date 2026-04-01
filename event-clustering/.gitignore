@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Model cache (sentence-transformers downloads models here)
+# Comment out if you want to cache models locally
+.cache/
+models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database backups
+*.sql
+*.db
+
+# Test files
+test_*.py
+temp_*.py
+
+# Jupyter notebooks (if any)
+*.ipynb_checkpoints/

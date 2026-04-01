@@ -1,0 +1,19 @@
+{
+  "name": "event-clustering",
+  "version": "1.0.0",
+  "description": "Event clustering system for Bengali news articles",
+  "scripts": {
+    "setup": "python start.py",
+    "cluster": "python cluster_service.py --hours 24",
+    "view": "python view_clusters.py --stats",
+    "list": "python view_clusters.py --list"
+  },
+  "dependencies": {},
+  "python_dependencies": [
+    "sentence-transformers",
+    "scikit-learn",
+    "rich",
+    "numpy",
+    "mysql-connector-python"
+  ]
+}
