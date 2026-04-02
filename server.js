@@ -97,15 +97,31 @@ app.use('/api', (req, res, next) => {
 });
 
 // Serve news images from all scrapers (must be BEFORE express.static('public') to take precedence)
-app.use('/news_images', express.static(path.join(__dirname, 'uploaded_news_images')));
-// Serve scraped images from centralised folder; each scraper saves to news_images/<name>/
-// Express will find ittefaq_abc123.jpg under news_images/ittefaq/ automatically via subdirectory traversal
 const newsImagesDir = path.join(__dirname, 'news_images');
-fs.readdirSync(newsImagesDir).forEach(sub => {
-    const subPath = path.join(newsImagesDir, sub);
-    if (fs.statSync(subPath).isDirectory()) {
-        app.use('/news_images', express.static(subPath));
+// Dynamic middleware: searches uploaded_news_images then all source subdirectories at request time.
+// This avoids the startup-time registration problem where new subdirectories created after server
+// start would never get a static route.
+app.use('/news_images', (req, res, next) => {
+    const filename = path.basename(req.path);
+    if (!filename) return next();
+
+    // 1. Check uploaded_news_images first (manually uploaded article images)
+    const uploadedPath = path.join(__dirname, 'uploaded_news_images', filename);
+    if (fs.existsSync(uploadedPath)) return res.sendFile(uploadedPath);
+
+    // 2. Search all source subdirectories under news_images/
+    try {
+        const subdirs = fs.readdirSync(newsImagesDir);
+        for (const sub of subdirs) {
+            const subPath = path.join(newsImagesDir, sub);
+            if (!fs.statSync(subPath).isDirectory()) continue;
+            const filePath = path.join(subPath, filename);
+            if (fs.existsSync(filePath)) return res.sendFile(filePath);
+        }
+    } catch (e) {
+        // news_images dir may not exist yet
     }
+    next();
 });
 // Serve public folder (after news_images to avoid path conflicts)
 app.use(express.static('public'));

@@ -23,7 +23,6 @@ VENV/
 .env.production
 
 # VS Code
-.vscode/
 
 # OS
 .DS_Store
@@ -80,3 +79,7 @@ coverage/
 
 # Backup folders
 scraper-manager v11 backup/
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
+branch_structure.json
